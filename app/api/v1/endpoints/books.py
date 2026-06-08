@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.dependencies import DBSession
-from app.schemas.book import BookCreate, BookRead, BookUpdate
+from app.schemas.book import BookCreate, BookListParams, BookRead, BookUpdate
 from app.services.book_service import BookService
 
 router = APIRouter()
@@ -19,6 +19,14 @@ BookServiceDep = Annotated[BookService, Depends(get_book_service)]
 @router.post("/", response_model=BookRead, status_code=status.HTTP_201_CREATED)
 async def create_book(body: BookCreate, service: BookServiceDep) -> BookRead:
     return await service.create_book(body)
+
+
+@router.get("/", response_model=list[BookRead])
+async def list_books(
+    service: BookServiceDep,
+    params: Annotated[BookListParams, Query()],
+) -> list[BookRead]:
+    return await service.list_books(params)
 
 
 @router.get("/{book_id}", response_model=BookRead)
