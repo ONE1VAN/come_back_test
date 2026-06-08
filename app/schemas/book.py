@@ -54,3 +54,17 @@ class BookRead(BasePydanticModel):
 
 class BulkResult(BasePydanticModel):
     inserted: int
+
+
+class BookFilter(BasePydanticModel):
+    title: str | None = None
+    author: str | None = None
+    genre: Genre | None = None
+    year_from: int | None = None
+    year_to: int | None = None
+
+
+class SortField(StrEnum):
+    year = "year"
+    title = "title"
+    id = "id"
