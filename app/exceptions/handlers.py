@@ -2,6 +2,8 @@ import logging
 
 import httpx
 from fastapi import Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 
@@ -46,3 +48,12 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     log = logger.exception if status_code >= 500 else logger.error
     log("%s - %s - %s - %s: %s", user, endpoint, status_code, type(exc).__name__, exc)
     return JSONResponse(status_code=status_code, content={"detail": client_detail, "request_id": rid})
+
+
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    endpoint, user, rid = _ctx(request)
+    logger.warning("%s - %s - 422 - RequestValidationError", user, endpoint)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=jsonable_encoder({"detail": "Validation error", "errors": exc.errors(), "request_id": rid}),
+    )
