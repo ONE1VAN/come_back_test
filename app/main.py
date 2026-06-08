@@ -1,12 +1,17 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 
 from app.api.router import api_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.exceptions.base import AppException
-from app.exceptions.handlers import app_exception_handler, unhandled_exception_handler
+from app.exceptions.handlers import (
+    app_exception_handler,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
 
 
 @asynccontextmanager
@@ -25,6 +30,7 @@ app = FastAPI(
 )
 
 app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
 app.include_router(api_router, prefix=settings.API_PREFIX)
