@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.models.author import AuthorDB
 from app.repositories.base import BaseRepository
@@ -15,7 +15,7 @@ class AuthorRepository(BaseRepository[AuthorDB]):
             "birth_year": data.get("birth_year"),
         }
         stmt = (
-            insert(AuthorDB)
+            pg_insert(AuthorDB)
             .values(**data)
             .on_conflict_do_nothing(index_elements=["first_name", "last_name", "birth_year"])
             .returning(AuthorDB.id)
