@@ -6,7 +6,7 @@ from app.models.book import BookDB
 from app.repositories.author_repository import AuthorRepository
 from app.repositories.book_repository import BookRepository
 from app.schemas.author import AuthorRead
-from app.schemas.book import BookCreate, BookFilter, BookRead, BookUpdate, SortField
+from app.schemas.book import BookCreate, BookFilter, BookListParams, BookRead, BookUpdate
 from app.services.base import BaseService
 
 
@@ -62,20 +62,19 @@ class BookService(BaseService):
             raise NotFoundException(f"Book id={book_id} not found")
         await self._session.commit()
 
-    async def list_books(
-        self,
-        *,
-        filters: BookFilter,
-        sort_field: SortField,
-        sort_desc: bool,
-        after_id: int | None,
-        limit: int,
-    ) -> list[BookRead]:
+    async def list_books(self, params: BookListParams) -> list[BookRead]:
+        filters = BookFilter(
+            title=params.title,
+            author=params.author,
+            genre=params.genre,
+            year_from=params.year_from,
+            year_to=params.year_to,
+        )
         books = await self._books.list_books(
             filters=filters,
-            sort_field=sort_field,
-            sort_desc=sort_desc,
-            after_id=after_id,
-            limit=limit,
+            sort_field=params.sort,
+            sort_desc=params.desc,
+            after_id=params.after_id,
+            limit=params.limit,
         )
         return [self._to_read(b, b.author) for b in books]

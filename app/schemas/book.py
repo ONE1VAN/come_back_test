@@ -4,7 +4,7 @@ from enum import StrEnum
 from pydantic import Field, field_validator
 
 from app.schemas.author import AuthorIn, AuthorRead
-from app.schemas.base import BasePydanticModel
+from app.schemas.base import BaseInputModel, BasePydanticModel
 
 
 class Genre(StrEnum):
@@ -68,3 +68,15 @@ class SortField(StrEnum):
     year = "year"
     title = "title"
     id = "id"
+
+
+class BookListParams(BaseInputModel):
+    title: str | None = None
+    author: str | None = None
+    genre: Genre | None = None
+    year_from: int | None = Field(default=None, ge=1800)
+    year_to: int | None = Field(default=None, le=CURRENT_YEAR)
+    sort: SortField = SortField.id
+    desc: bool = False
+    after_id: int | None = Field(default=None)
+    limit: int = Field(default=50, ge=1, le=200)
