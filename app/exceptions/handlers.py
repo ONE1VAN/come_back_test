@@ -1,6 +1,5 @@
 import logging
 
-import httpx
 from fastapi import Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -27,10 +26,6 @@ def _map_low_level(exc: Exception) -> tuple[int, str]:
         return status.HTTP_503_SERVICE_UNAVAILABLE, "Database temporarily unavailable"
     if isinstance(exc, SQLAlchemyError):
         return status.HTTP_500_INTERNAL_SERVER_ERROR, "Database error"
-    if isinstance(exc, httpx.HTTPStatusError):
-        return status.HTTP_502_BAD_GATEWAY, "External service returned an error"
-    if isinstance(exc, httpx.RequestError):
-        return status.HTTP_503_SERVICE_UNAVAILABLE, "External service unavailable"
     if isinstance(exc, ValueError | KeyError):
         return status.HTTP_422_UNPROCESSABLE_CONTENT, "Invalid input"
     return status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal server error"
