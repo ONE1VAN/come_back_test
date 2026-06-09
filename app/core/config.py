@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     DB_ECHO: bool = False
 
     # Auth
-    JWT_SECRET_KEY: SecretStr = SecretStr("change-me")
+    JWT_SECRET_KEY: SecretStr
     JWT_ALGORITHM: Literal["HS256", "HS384", "HS512"] = "HS256"
     ACCESS_TOKEN_TTL_MINUTES: int = Field(default=15, ge=1)
     REFRESH_TOKEN_TTL_DAYS: int = Field(default=14, ge=1)
@@ -39,13 +39,6 @@ class Settings(BaseSettings):
     def not_blank(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("must not be empty")
-        return v
-
-    @field_validator("JWT_SECRET_KEY")
-    @classmethod
-    def secret_required_in_prod(cls, v: SecretStr, info) -> SecretStr:
-        if info.data.get("ENVIRONMENT") == "production" and v.get_secret_value() == "change-me":
-            raise ValueError("JWT_SECRET_KEY must be set in production!")
         return v
 
     @computed_field
