@@ -18,7 +18,7 @@ Migrations run automatically on container start.
 ```bash
 docker compose up -d db
 python -m venv venv && venv\Scripts\activate
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
