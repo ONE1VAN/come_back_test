@@ -32,7 +32,7 @@ def _map_low_level(exc: Exception) -> tuple[int, str]:
     if isinstance(exc, httpx.RequestError):
         return status.HTTP_503_SERVICE_UNAVAILABLE, "External service unavailable"
     if isinstance(exc, ValueError | KeyError):
-        return status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid input"
+        return status.HTTP_422_UNPROCESSABLE_CONTENT, "Invalid input"
     return status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal server error"
 
 
@@ -57,6 +57,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     endpoint, user, rid = _ctx(request)
     logger.warning("%s - %s - 422 - RequestValidationError", user, endpoint)
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content=jsonable_encoder({"detail": "Validation error", "errors": exc.errors(), "request_id": rid}),
     )
