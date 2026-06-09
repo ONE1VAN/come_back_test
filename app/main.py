@@ -12,6 +12,7 @@ from app.exceptions.handlers import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
+from app.middlewares.request_id import RequestIDMiddleware
 
 
 @asynccontextmanager
@@ -28,6 +29,8 @@ app = FastAPI(
     redoc_url=f"{settings.API_PREFIX}/v1/redoc",
     openapi_url=f"{settings.API_PREFIX}/v1/openapi.json",
 )
+
+app.add_middleware(RequestIDMiddleware)
 
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
