@@ -39,7 +39,10 @@ def _map_low_level(exc: Exception) -> tuple[int, str]:
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
     endpoint, user, rid = _ctx(request)
     logger.warning("%s - %s - %s - %s: %s", user, endpoint, exc.status_code, type(exc).__name__, exc.detail)
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail, "request_id": rid})
+    body = {"detail": exc.detail, "request_id": rid}
+    if getattr(exc, "errors", None):
+        body["errors"] = exc.errors
+    return JSONResponse(status_code=exc.status_code, content=jsonable_encoder(body))
 
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:

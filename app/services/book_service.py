@@ -1,12 +1,13 @@
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.exceptions.base import NotFoundException
+from app.exceptions.base import BulkValidationException, NotFoundException
 from app.models.author import AuthorDB
 from app.models.book import BookDB
 from app.repositories.author_repository import AuthorRepository
 from app.repositories.book_repository import BookRepository
 from app.schemas.author import AuthorRead
-from app.schemas.book import BookCreate, BookFilter, BookListParams, BookRead, BookUpdate
+from app.schemas.book import BookCreate, BookFilter, BookListParams, BookRead, BookUpdate, BulkResult
 from app.services.base import BaseService
 
 
@@ -77,4 +78,23 @@ class BookService(BaseService):
             after_id=params.after_id,
             limit=params.limit,
         )
+        return [self._to_read(b, b.author) for b in books]
+
+    async def bulk_import(self, raw_rows: list[dict]) -> BulkResult:
+        valid, errors = [], []
+        for i, raw in enumerate(raw_rows):
+            try:
+                book = BookCreate.model_validate(raw)
+                author = await self._authors.get_or_create(book.author.model_dump())
+                valid.append({"title": book.title, "author_id": author.id, "genre": book.genre, "year": book.year})
+            except ValidationError as e:
+                errors.append({"row": i, "reason": e.errors()})
+        if errors:
+            raise BulkValidationException(errors)
+        await self._books.bulk_create(valid)
+        await self._session.commit()
+        return BulkResult(inserted=len(valid))
+
+    async def export_books(self) -> list[BookRead]:
+        books = await self._books.list_all()
         return [self._to_read(b, b.author) for b in books]
