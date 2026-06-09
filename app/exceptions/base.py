@@ -30,3 +30,9 @@ class ForbiddenException(AppException):
 class ValidationException(AppException):
     status_code = 422
     detail = "Validation error"
+
+
+class BulkValidationException(ValidationException):
+    def __init__(self, errors: list[dict]) -> None:
+        super().__init__(detail="Some rows are invalid; nothing was imported")
+        self.errors = errors
